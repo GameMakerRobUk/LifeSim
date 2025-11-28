@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"find_path_hpa_high_level",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"find_path_hpa_high_level",
+  "parent":{
+    "name":"Scripts",
+    "path":"folders/Scripts.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

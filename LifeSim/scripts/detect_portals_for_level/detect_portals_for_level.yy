@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"detect_portals_for_level",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"detect_portals_for_level",
+  "parent":{
+    "name":"Scripts",
+    "path":"folders/Scripts.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
