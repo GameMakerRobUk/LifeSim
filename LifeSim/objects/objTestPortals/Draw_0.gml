@@ -1,0 +1,1 @@
+draw_cluster_surface(level_display_index);

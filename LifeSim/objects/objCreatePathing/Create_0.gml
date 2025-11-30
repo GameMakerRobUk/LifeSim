@@ -14,3 +14,4 @@ collision_map_id = layer_tilemap_get_id(_lay_id);
 create_cells(collision_map_id);
 set_neighbours();
 create_clusters();
+create_portals();

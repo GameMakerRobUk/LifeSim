@@ -81,6 +81,14 @@ function draw_cluster_surface(_level) {
                     _base_y + _h - 1,
                     true
                 );
+				
+				var _portals = _cluster.portals;
+				
+				for (var i = 0; i < array_length(_portals); i ++){
+					var _portal = _portals[i];
+					draw_set_color(c_fuchsia);
+					draw_circle(_portal.x + (CELL_SIZE/2), _portal.y + (CELL_SIZE/2), CELL_SIZE/2, true);
+				}
             }
         }
    // }
