@@ -37,6 +37,7 @@
   "resources":[
     {"id":{"name":"objActor","path":"objects/objActor/objActor.yy",},},
     {"id":{"name":"objCreatePathing","path":"objects/objCreatePathing/objCreatePathing.yy",},},
+    {"id":{"name":"objTestAstar","path":"objects/objTestAstar/objTestAstar.yy",},},
     {"id":{"name":"rm_small","path":"rooms/rm_small/rm_small.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
     {"id":{"name":"Cell","path":"scripts/Cell/Cell.yy",},},

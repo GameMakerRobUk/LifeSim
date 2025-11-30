@@ -1,10 +1,10 @@
 // A* Heuristic: Manhattan Distance (for grid movement)
-function heuristic(_cell, _end_x, _end_y) {
+function heuristic(_cell, _end_cell_x, _end_cell_y) {
 	if (_cell == noone || _cell == undefined){
 		show_debug_message("heuristic cell is undefined")	
 	}
 
-    return abs(_cell.cell_x - _end_x) + abs(_cell.cell_y - _end_y);
+    return abs(_cell.cell_x - _end_cell_x) + abs(_cell.cell_y - _end_cell_y);
 }
 
 function heuristic_cluster(_cluster, _goal_cluster) {
@@ -17,7 +17,7 @@ function heuristic_cluster(_cluster, _goal_cluster) {
          + abs(_cluster.cell_y - _goal_cluster.cell_y);
 }
 
-function find_path(_start_x, _start_y, _end_x, _end_y){
+function find_path(_start_cell_x, _start_cell_y, _end_cell_x, _end_cell_y){
 	
 	var _keys = [
         "nw", "n", "ne",
@@ -26,14 +26,14 @@ function find_path(_start_x, _start_y, _end_x, _end_y){
     ];
 
     // 1. Input Validation and Setup
-    var _start_cell = global.nav[_start_y][_start_x];
-    var _end_cell = global.nav[_end_y][_end_x];
+    var _start_cell = global.nav[_start_cell_y][_start_cell_x];
+    var _end_cell = global.nav[_end_cell_y][_end_cell_x];
 	
     if (!_start_cell.walkable || !_end_cell.walkable) {
         return []; // Return empty path if start or end is blocked
     }
     if (_start_cell == _end_cell) {
-        return [{x: _end_x, y: _end_y}]; // Return just the end point if already there
+        return [{x: _end_cell_x, y: _end_cell_y}]; // Return just the end point if already there
     }
 
     // Use a DS priority queue (Min-Heap) for efficient open list management
@@ -45,7 +45,7 @@ function find_path(_start_x, _start_y, _end_x, _end_y){
     var _start_data = {
         cell: _start_cell,
         g_cost: 0,
-        f_cost: heuristic(_start_cell, _end_x, _end_y),
+        f_cost: heuristic(_start_cell, _end_cell_x, _end_cell_y),
         parent: noone
     };
     
@@ -65,7 +65,7 @@ function find_path(_start_x, _start_y, _end_x, _end_y){
             var _curr = _current_data;
             while (_curr != noone) {
                 // Prepend to the path array (GameMaker arrays grow efficiently)
-                array_insert(_path, 0, {x: _curr.cell.cell_x, y: _curr.cell.cell_y});
+                array_insert(_path, 0, {cell_x: _curr.cell.cell_x, cell_y: _curr.cell.cell_y});
                 _curr = _curr.parent;
             }
             
@@ -106,7 +106,7 @@ function find_path(_start_x, _start_y, _end_x, _end_y){
                 }
                     
                 _neighbor_data.g_cost = _new_g_cost;
-                _neighbor_data.f_cost = _new_g_cost + heuristic(_neighbor_cell, _end_x, _end_y);
+                _neighbor_data.f_cost = _new_g_cost + heuristic(_neighbor_cell, _end_cell_x, _end_cell_y);
                 _neighbor_data.parent = _current_data;
 
                 // Add or update neighbor in the open list (priority queue handles updates internally)

@@ -23,7 +23,7 @@ global.cells_v = 100;
 var _lay_id = layer_get_id("Collision");
 collision_map_id = layer_tilemap_get_id(_lay_id);
 
-create_nodes(collision_map_id);
+create_cells(collision_map_id);
 set_neighbours();
 
 // -------------------------
