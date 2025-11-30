@@ -23,7 +23,6 @@ global.cells_v = 100;
 var _lay_id = layer_get_id("Collision");
 collision_map_id = layer_tilemap_get_id(_lay_id);
 
-
 create_nodes(collision_map_id);
 set_neighbours();
 
@@ -32,13 +31,6 @@ set_neighbours();
 // -------------------------
 global.clusters = [];
 
-create_clusters();
-
-for (var i = 0; i < TOTAL_CLUSTER_LEVELS; i ++){
-	detect_portals_for_level(i);	
-}
-
-generate_portal_connections();
 
 alarm[0] = 60;
 level_display_index = 0;

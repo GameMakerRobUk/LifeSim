@@ -39,6 +39,6 @@ for (var _level = 0; _level < array_length(cluster_size); _level++) {
 	}
 }
 */
-draw_navigation_hierarchy(0);//level_display_index);
+//draw_navigation_hierarchy(0);//level_display_index);
 //test_neighbours();
 //draw_portal_connections_debug();
