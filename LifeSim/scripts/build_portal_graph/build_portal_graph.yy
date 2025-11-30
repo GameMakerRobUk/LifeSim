@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"build_portal_graph",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"build_portal_graph",
+  "parent":{
+    "name":"Scripts",
+    "path":"folders/Scripts.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,50 +1,53 @@
-function get_cluster_at_coords(_cx, _cy, _level) {
-    var _csize = global.cluster_sizes[_level];
-    var _cluster_x = floor(_cx / _csize);
-    var _cluster_y = floor(_cy / _csize);
+function get_cluster_at_coords(_cell_x, _cell_y, _level) {
+    //var _csize = global.cluster_sizes[_level];
+    //var _cluster_x = floor(_cx / _csize);
+    //var _cluster_y = floor(_cy / _csize);
     // Add boundary checks here if needed, but assuming valid input for now
-    if (_cluster_x < 0 || _cluster_x >= array_length(global.clusters[_level][0])) return noone;
-    if (_cluster_y < 0 || _cluster_y >= array_length(global.clusters[_level])) return noone;
-    return global.clusters[_level][_cluster_y][_cluster_x];
+    if (_cell_x < 0 || _cell_x >= array_length(global.clusters[_level][0])) return noone;
+    if (_cell_y < 0 || _cell_y >= array_length(global.clusters[_level])) return noone;
+	
+    return global.clusters[_level][_cell_y][_cell_x];
 }
 
 function heuristic_euclidian(_portal, _end_x_cell, _end_y_cell) {
-    return point_distance(_portal.x, _portal.y, _end_x_cell, _end_y_cell);
+    return point_distance(_portal.cell_x, _portal.cell_y, _end_x_cell, _end_y_cell);
 }
 
-function find_path_hpa_high_level(_start_x, _start_y, _end_x, _end_y) {
-    var _level_index = 0;
+function find_path_hpa_high_level(_start_cell_x, _start_cell_y, _end_cell_x, _end_cell_y) {
+	show_debug_message("!!! find_path_hpa_high_level")
+    var _level_index = 0; // HPA* usually runs on the lowest/finest level abstraction first
 
-    var _start_cluster = get_cluster_at_coords(_start_x, _start_y, _level_index);
-    var _end_cluster   = get_cluster_at_coords(_end_x, _end_y, _level_index);
+    var _start_cluster = get_cluster_at_coords(_start_cell_x, _start_cell_y, _level_index);
+    var _end_cluster   = get_cluster_at_coords(_end_cell_x, _end_cell_y, _level_index);
 
     if (_start_cluster == noone || _end_cluster == noone || _start_cluster == _end_cluster) {
-        return { path_found: true, high_level_path: [] }; // Already in same cluster, high level plan is empty
+        return { path_found: true, high_level_path: [] }; // Already in same cluster
     }
+	
+	show_debug_message("_start_cluster: " + " | level: " + string(_start_cluster.level) + " | cell_x: " + string(_start_cluster.cell_x) + " | cell_y: " + string(_start_cluster.cell_y))
+	show_debug_message("_end_cluster: " + " | level: " + string(_end_cluster.level) + " | cell_x: " + string(_end_cluster.cell_x) + " | cell_y: " + string(_start_cluster.cell_y))
 
     var _open_list   = ds_priority_create();
-    // Use a string map for tracking visited *portals* and their A* data
     var _portal_data = ds_map_create(); 
 
     // ---------------------------------------------------------
-    // START PORTALS: Initialize the search with all exit portals from the start cluster
+    // START PORTALS: Initialize the search
     // ---------------------------------------------------------
     var _start_portals = _start_cluster.portals;
     for (var i = 0; i < array_length(_start_portals); i++) {
         var _p = _start_portals[i];
 
         var _data = {
-            portal: _p,
+            portal: _p, // The destination portal for this step
             from_cluster: _start_cluster,
             to_cluster: _p.to_cluster,
-            g_cost: 0, // G cost from the actual start point *to this portal* is calculated later during stitching
-            // The F cost initially is just the heuristic from the portal's target cluster to the end cluster
-            f_cost: heuristic_cluster(_p.to_cluster, _end_cluster), 
-            parent_key: noone // The start point isn't a portal
+            g_cost: 0, 
+            f_cost: point_distance(_p.cell_x, _p.cell_y, _end_cell_x, _end_cell_y), // Heuristic from portal to end
+            parent_key: noone 
         };
 
-        ds_priority_add(_open_list, _p, _data.f_cost);
-        ds_map_add(_portal_data, string(_p.id), _data); // Use unique ID as key
+        ds_priority_add(_open_list, _p.id, _data.f_cost); // Add ID to priority queue
+        ds_map_add(_portal_data, _p.id, _data); // Use unique ID as key for data map
     }
 
     // ---------------------------------------------------------
@@ -52,22 +55,27 @@ function find_path_hpa_high_level(_start_x, _start_y, _end_x, _end_y) {
     // ---------------------------------------------------------
     while (!ds_priority_empty(_open_list)) {
 
-        var _current_portal = ds_priority_delete_min(_open_list);
-        var _current_data   = _portal_data[? string(_current_portal.id)];
-
-        var _entering_cluster = _current_data.to_cluster;
+        var _current_portal_id = ds_priority_delete_min(_open_list);
+        var _current_data      = _portal_data[? _current_portal_id];
+        var _current_portal    = _current_data.portal;
+        var _entering_cluster  = _current_data.to_cluster; // The cluster we just entered
 
         // Reached goal?
         if (_entering_cluster == _end_cluster) {
             var _high_level_path = [];
             var _curr_data = _current_data;
 
+            // Trace back the path. The previous portal becomes the 'entry' to this cluster.
             while (_curr_data.parent_key != noone) {
+                var _parent_data = _portal_data[? _curr_data.parent_key];
+                
+                // --- FIX 1: Populate the high-level path segment correctly ---
                 array_insert(_high_level_path, 0, {
-                    cluster: _curr_data.from_cluster,
-                    exit_portal: _curr_data.portal
+                    cluster:     _curr_data.from_cluster, // The cluster containing this segment
+                    entry_portal: _parent_data.portal,    // The portal we came *from*
+                    exit_portal:  _curr_data.portal       // The portal we are going *to*
                 });
-                _curr_data = _portal_data[? _curr_data.parent_key];
+                _curr_data = _parent_data;
             }
             
             ds_priority_destroy(_open_list);
@@ -83,60 +91,41 @@ function find_path_hpa_high_level(_start_x, _start_y, _end_x, _end_y) {
         for (var j = 0; j < array_length(_neighbors); j++) {
             var _nbr = _neighbors[j];
             
-            // --- CRITICAL CHANGE: Use precomputed cost between portals ---
-            // Find the key for the connection from the current portal (_current_portal) 
-            // to the neighbor portal (_nbr) within the _entering_cluster.
+            // --- FIX 2: Use the precomputed cost from our cache for A* G-cost calculation ---
+            // We need the *full path coordinate array* lookup to work now. 
+			show_debug_message("_current_portal.id: " + string(_current_portal.id));
+			show_debug_message("_nbr.id: " + string(_nbr.id));
+            var _cached_path_coords = get_cached_portal_path(_entering_cluster, _current_portal.id, _nbr.id);
+            
+            if (_cached_path_coords == undefined) {
+                continue; // Cannot traverse between these two portals (e.g., blocked path inside cluster)
+            }
+            
+            // The cost is the length of the cached path
+            var _move_cost_from_cache = array_length(_cached_path_coords);
 
-            // Note: `generate_portal_connections` assumes paths only exist between portals of the *same* cluster. 
-            // We need a specific key lookup.
-            
-            // This part requires access to the connection map we populated earlier.
-            // We need to know which of the two portals was P1 and which was P2 during generation. 
-            // The current setup makes this lookup slightly complex. Let's simplify the cost assumption slightly 
-            // by relying on the A* we run *later* in `find_path_hpa_master`.
-            
-            // For the high-level A* to work efficiently *without* re-running low-level A* constantly,
-            // we should store the travel costs directly on the portal connections.
+            var _new_g = _current_data.g_cost + _move_cost_from_cache; 
 
-            // Since you did precalculate costs in `generate_portal_connections`, we use them now:
-            var _conn_key = string(_current_portal.id) + "_" + string(_nbr.id); // This key format isn't used in your original generation code
-            
-            // Your original generation used generic index keys, which isn't sufficient here. 
-            // We must update how costs are calculated/stored for this to work perfectly.
-            
-            // Reverting to a simple *approximate* cost for the high level while keeping the master stitching as the source of truth for now:
-            // The move cost is currently 1, which causes the bias issue. We need a better approximation.
-            // We can use Euclidean distance between portals as a better heuristic *for high-level G-cost*.
-            
-            var _move_cost_approx = point_distance(_current_portal.x, _current_portal.y, _nbr.x, _nbr.y);
-
-            var _new_g = _current_data.g_cost + _move_cost_approx; // Use distance, not fixed '1'
-
-            // Check if this path to the neighbor portal is better than a previously found one
-            var _nbr_id_str = string(_nbr.id);
-            if (!ds_map_exists(_portal_data, _nbr_id_str) || _new_g < _portal_data[? _nbr_id_str].g_cost) {
+            var _nbr_id = _nbr.id;
+            if (!ds_map_exists(_portal_data, _nbr_id) || _new_g < _portal_data[? _nbr_id].g_cost) {
                 
                 var _data2 = {
                     portal: _nbr,
                     from_cluster: _entering_cluster,
                     to_cluster: _nbr.to_cluster,
                     g_cost: _new_g,
-                    // Heuristic calculation uses actual cell coordinates, which is better
-                    f_cost: _new_g + point_distance(_nbr.x, _nbr.y, _end_x, _end_y), 
-                    parent_key: string(_current_portal.id) // Use the parent portal's unique ID string
+                    f_cost: _new_g + point_distance(_nbr.cell_x, _nbr.cell_y, _end_cell_x, _end_cell_y), 
+                    parent_key: _current_portal.id 
                 };
                 
-                // Add or update the portal data in the map and priority queue
-                if (!ds_map_exists(_portal_data, _nbr_id_str)) {
-                    ds_map_add(_portal_data, _nbr_id_str, _data2);
+                // Add or update the portal data
+                if (!ds_map_exists(_portal_data, _nbr_id)) {
+                    ds_map_add(_portal_data, _nbr_id, _data2);
                 } else {
-                    struct_set(_portal_data[? _nbr_id_str], "g_cost", _new_g);
-                    struct_set(_portal_data[? _nbr_id_str], "f_cost", _data2.f_cost);
-                    struct_set(_portal_data[? _nbr_id_str], "parent_key", _data2.parent_key);
+                    ds_map_replace(_portal_data, _nbr_id, _data2); // Simpler replacement using ds_map_replace
                 }
                 
-                // Add to the priority queue (priority queue handles updates internally by adding new entry and ignoring older ones later)
-                ds_priority_add(_open_list, _nbr, _data2.f_cost);
+                ds_priority_add(_open_list, _nbr.id, _data2.f_cost);
             }
         }
     }

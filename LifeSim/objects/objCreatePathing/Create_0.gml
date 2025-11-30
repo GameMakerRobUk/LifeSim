@@ -1,6 +1,6 @@
 #macro CELL_SIZE 16
 
-global.cluster_sizes = [8, 32, 128, 512];
+global.cluster_sizes = [4, 8, 16, 32];
 #macro TOTAL_CLUSTER_LEVELS array_length(global.cluster_sizes)
 
 /*

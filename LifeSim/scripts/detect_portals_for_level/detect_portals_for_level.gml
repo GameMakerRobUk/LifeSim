@@ -1,7 +1,7 @@
-function Portal(_x, _y, _to_cluster, _side) constructor{
+function Portal(_cell_x, _cell_y, _to_cluster, _side) constructor{
 	static count = 0;
-	x = _x;
-	y = _y;
+	cell_x = _cell_x;
+	cell_y = _cell_y;
 	to_cluster = _to_cluster;
 	side = _side;
 	id = "portal_" + string(count);

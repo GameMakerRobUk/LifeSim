@@ -46,8 +46,8 @@ function draw_navigation_hierarchy(_level_to_display) {
                 var _p = _portal_list[_i];
                 
                 // Portals are single cells on the boundary. Draw a small filled rectangle.
-                var _px = _p.x * _cell_size;
-                var _py = _p.y * _cell_size;
+                var _px = _p.cell_x// * _cell_size;
+                var _py = _p.cell_y// * _cell_size;
                 var _p_size = 4; // Size of the drawn portal indicator
 
                 // Adjust drawing position slightly to center the indicator
